@@ -1,21 +1,23 @@
+# Import necessary libraries and modules
 import pygame
 import time
 import math
 from utils import scale_image, blit_rotate_center, blit_text_center
 pygame.font.init()
 
-GRASS = scale_image(pygame.image.load("imgs/grass.jpg"), 2.5)
-TRACK = scale_image(pygame.image.load("imgs/track.png"), 0.9)
+# Load and scale game assets
+GRASS = scale_image(pygame.image.load(r"C:\Users\NIKHIL SINGH\Pygame-Car-Racer\tutorial4-code\imgs\grass.jpg"), 2.5)
+TRACK = scale_image(pygame.image.load(r"C:\Users\NIKHIL SINGH\Pygame-Car-Racer\tutorial4-code\imgs\track.png"), 0.9)
 
-TRACK_BORDER = scale_image(pygame.image.load("imgs/track-border.png"), 0.9)
+TRACK_BORDER = scale_image(pygame.image.load(r"C:\Users\NIKHIL SINGH\Pygame-Car-Racer\tutorial4-code\imgs\track-border.png"), 0.9)
 TRACK_BORDER_MASK = pygame.mask.from_surface(TRACK_BORDER)
 
-FINISH = pygame.image.load("imgs/finish.png")
+FINISH = pygame.image.load(r"C:\Users\NIKHIL SINGH\Pygame-Car-Racer\tutorial4-code\imgs\finish.png")
 FINISH_MASK = pygame.mask.from_surface(FINISH)
 FINISH_POSITION = (130, 250)
 
-RED_CAR = scale_image(pygame.image.load("imgs/red-car.png"), 0.55)
-GREEN_CAR = scale_image(pygame.image.load("imgs/green-car.png"), 0.55)
+RED_CAR = scale_image(pygame.image.load(r"C:\Users\NIKHIL SINGH\Pygame-Car-Racer\tutorial4-code\imgs\red-car.png"), 0.55)
+GREEN_CAR = scale_image(pygame.image.load(r"C:\Users\NIKHIL SINGH\Pygame-Car-Racer\tutorial4-code\imgs\green-car.png"), 0.55)
 
 WIDTH, HEIGHT = TRACK.get_width(), TRACK.get_height()
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -24,10 +26,12 @@ pygame.display.set_caption("Racing Game!")
 MAIN_FONT = pygame.font.SysFont("comicsans", 44)
 
 FPS = 60
+
+# Define the path the computer car will follow
 PATH = [(175, 119), (110, 70), (56, 133), (70, 481), (318, 731), (404, 680), (418, 521), (507, 475), (600, 551), (613, 715), (736, 713),
         (734, 399), (611, 357), (409, 343), (433, 257), (697, 258), (738, 123), (581, 71), (303, 78), (275, 377), (176, 388), (178, 260)]
 
-
+# Define the GameInfo class to manage game state
 class GameInfo:
     LEVELS = 10
 
@@ -57,7 +61,7 @@ class GameInfo:
             return 0
         return round(time.time() - self.level_start_time)
 
-
+# Define an abstract car class with common properties and methods
 class AbstractCar:
     def __init__(self, max_vel, rotation_vel):
         self.img = self.IMG
@@ -104,7 +108,7 @@ class AbstractCar:
         self.angle = 0
         self.vel = 0
 
-
+# Define the PlayerCar class, inheriting from AbstractCar
 class PlayerCar(AbstractCar):
     IMG = RED_CAR
     START_POS = (180, 200)
@@ -117,7 +121,7 @@ class PlayerCar(AbstractCar):
         self.vel = -self.vel
         self.move()
 
-
+# Define the ComputerCar class, inheriting from AbstractCar
 class ComputerCar(AbstractCar):
     IMG = GREEN_CAR
     START_POS = (150, 200)
@@ -178,7 +182,7 @@ class ComputerCar(AbstractCar):
         self.vel = self.max_vel + (level - 1) * 0.2
         self.current_point = 0
 
-
+# Define a function to draw game elements
 def draw(win, images, player_car, computer_car, game_info):
     for img, pos in images:
         win.blit(img, pos)
@@ -187,9 +191,11 @@ def draw(win, images, player_car, computer_car, game_info):
         f"Level {game_info.level}", 1, (255, 255, 255))
     win.blit(level_text, (10, HEIGHT - level_text.get_height() - 70))
 
+
     time_text = MAIN_FONT.render(
         f"Time: {game_info.get_level_time()}s", 1, (255, 255, 255))
     win.blit(time_text, (10, HEIGHT - time_text.get_height() - 40))
+
 
     vel_text = MAIN_FONT.render(
         f"Vel: {round(player_car.vel, 1)}px/s", 1, (255, 255, 255))
@@ -199,7 +205,7 @@ def draw(win, images, player_car, computer_car, game_info):
     computer_car.draw(win)
     pygame.display.update()
 
-
+# Define a function to handle player car movement
 def move_player(player_car):
     keys = pygame.key.get_pressed()
     moved = False
@@ -218,14 +224,14 @@ def move_player(player_car):
     if not moved:
         player_car.reduce_speed()
 
-
+# Define a function to handle collision detection and game logic
 def handle_collision(player_car, computer_car, game_info):
-    if player_car.collide(TRACK_BORDER_MASK) != None:
+    if player_car.collide(TRACK_BORDER_MASK) is not None:
         player_car.bounce()
 
     computer_finish_poi_collide = computer_car.collide(
         FINISH_MASK, *FINISH_POSITION)
-    if computer_finish_poi_collide != None:
+    if computer_finish_poi_collide is not None:
         blit_text_center(WIN, MAIN_FONT, "You lost!")
         pygame.display.update()
         pygame.time.wait(5000)
@@ -235,21 +241,22 @@ def handle_collision(player_car, computer_car, game_info):
 
     player_finish_poi_collide = player_car.collide(
         FINISH_MASK, *FINISH_POSITION)
-    if player_finish_poi_collide != None:
+    if player_finish_poi_collide is not None:
         if player_finish_poi_collide[1] == 0:
             player_car.bounce()
         else:
+            blit_text_center(WIN, MAIN_FONT, "You won the game!")
             game_info.next_level()
             player_car.reset()
             computer_car.next_level(game_info.level)
 
-
+# Main game loop
 run = True
 clock = pygame.time.Clock()
 images = [(GRASS, (0, 0)), (TRACK, (0, 0)),
           (FINISH, FINISH_POSITION), (TRACK_BORDER, (0, 0))]
 player_car = PlayerCar(4, 4)
-computer_car = ComputerCar(2, 4, PATH)
+computer_car = ComputerCar(4, 4, PATH)
 game_info = GameInfo()
 
 while run:
@@ -286,5 +293,5 @@ while run:
         player_car.reset()
         computer_car.reset()
 
-
 pygame.quit()
+
